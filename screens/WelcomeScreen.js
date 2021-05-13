@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, TextInput, TouchableOpacity, Alert, Text} from 'react-native';
+import {StyleSheet, View, TextInput, TouchableOpacity, Alert, Text, Modal, KeyboardAvoidingView, ScrollView,} from 'react-native';
 import db from '../config';
 import firebase from 'firebase';
 
@@ -8,20 +8,45 @@ export default class WelcomeScreen extends React.Component{
       super()
       this.state={
         emailId:'',
-        password:''
+        password:'',
+        isModalVisible:'false',
+        firstName:'',
+        lastName:'',
+        address:'',
+        mobileNumber:'',
+        confirmPassword:'',
+        username:'',
       }
     }
 
-    userSignUp = (emailId, password) =>{
-        firebase.auth().createUserWithEmailAndPassword(emailId, password)
-        .then((response)=>{
-            return Alert.alert("user added successfully")
-        })
-        .catch(function(error){
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            return Alert.alert(errorMessage)
-        })
+    userSignUp = (emailId, password, confirmPassword) =>{
+        if(password !== confirmPassword){
+            return Alert.alert("password doesn't match\check your password.")
+        }else{
+            firebase.auth().createUserWithEmailAndPassword(username, password)
+            .then((response)=>{
+                db.collection('users').add({
+                    first_name:this.state.firstName,
+                    last_name:this.state.lastName,
+                    mobile_number:this.state.mobileNumber,
+                    username:this.state.username,
+                    address:this.state.address
+                })
+                return Alert.alert(
+                    'User added successfully',
+                    '',
+                    [
+                        {text:'OK', onPress: () => this.setState({isModalVisible : false})}
+                    ]
+                );
+            })
+            .catch(function(error){
+                //This is where the errors are handled
+                var code=error.code;
+                var errorMessage=error.message;
+                return Alert.alert(errorMessage)
+            });
+        }
     }
 
     userLogin = (emailId, password) =>{
@@ -34,6 +59,15 @@ export default class WelcomeScreen extends React.Component{
             var errorMessage = error.message;
             return alert.Alert(errorMessage)
         })
+    }
+
+    showModal=()=>{
+        <Modal 
+            animationType="fade"
+            transparent={true}
+            visible={this.state.visible}
+        />
+        
     }
 
     render(){
